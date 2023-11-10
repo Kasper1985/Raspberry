@@ -32,9 +32,9 @@ def getTotalRam() -> float:
     Reads total RAM.
     Returns total RAM amount in Gi.
     """
-    res = sp.getoutput("free -h | awk 'NR==2 {printf \"%s\", $2}' | egrep -o '[0-9]*\.[0-9]*'")
+    res = sp.getoutput("free -m | awk 'NR==2 {printf \"%s\", $2}'")
     if res != '':
-        return float(res)
+        return round(float(res) / 1000, 1)
     return 0.0
 
 def getUsedRam() -> float:
@@ -42,9 +42,9 @@ def getUsedRam() -> float:
     Reads used RAM.
     Returns used RAM amount in Gi.
     """
-    res = sp.getoutput("free -h | awk 'NR==2 {printf \"%s\", $3}' | egrep -o '[0-9]*\.[0-9]*'")
+    res = sp.getoutput("free -m | awk 'NR==2 {printf \"%s\", $3}'")
     if res != '':
-        return float(res)
+        return round(float(res) / 1000, 1)
     return 0.0
 
 def getTotalSd() -> float:
