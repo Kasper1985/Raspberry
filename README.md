@@ -27,6 +27,7 @@ Monitoring system and controlling cpu fan
 optional arguments:
   -h, --help            show this help message and exit
   -n NAME, --name NAME  greetings name shown by program start
+  -l LOG, --log LOG     log output file
 ```
 
 ---
@@ -47,12 +48,12 @@ Add in the following text:
 
 ```ini
 [Unit]
-Description=My Sample Service
+Description=Monitoring Service
 After=multi-user.target
 
 [Service]
 Type=idle
-ExecStart=/usr/bin/python /home/pi/sample.py
+ExecStart=/usr/bin/python3 /home/pi/monitoring.py -l /home/pi/log
 
 [Install]
 WantedBy=multi-user.target
@@ -65,13 +66,13 @@ This defines a new service called “Sample Service” and we are requesting tha
 In order to store the script’s text output in a log file you can change the ExecStart line to:
 
 ```ini
-ExecStart=/usr/bin/python /home/pi/sample.py > /home/pi/sample.log 2>&1
+ExecStart=/usr/bin/python3 /home/pi/monitoring.py > /home/pi/monitoring.log 2>&1
 ```
 
 The permission on the unit file needs to be set to 644 :
 
 ```bash
-foo@bar:~$ sudo chmod 644 /lib/systemd/system/sample.service
+foo@bar:~$ sudo chmod 644 /lib/systemd/system/monitoring.service
 ```
 
 #### Step 2 - Configure systemd

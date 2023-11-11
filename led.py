@@ -60,19 +60,19 @@ def wheel(pos: int) -> Color:
     else:
         pos -= POSITION_STEP * 2
         return Color(0, pos * 3, 255 - pos * 3)
-        
+
 def rainbowCycle(strip: PixelStrip, stop_event: threading.Event) -> None:
     """
     Draw rainbow that uniformly distributes itself across all pixels.
     strip: LED strip to be configured.
     stop_event: Threading event to be fired from the host to stop current function.
     """
-    while not stop_event.isSet():
+    while not stop_event.is_set():
         for j in range(256):
             for i in range(1, strip.numPixels()):
                 strip.setPixelColor(i, wheel((int(i * 256 / strip.numPixels()) + j) & 255))
             strip.show()
             time.sleep(WAIT_MS / 1000.0)
 
-            if stop_event.isSet():
+            if stop_event.is_set():
                 break

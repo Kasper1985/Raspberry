@@ -13,9 +13,6 @@ import led
 from fan import CPU_FAN
 from display import DashBoard
 
-# Initialize logging
-logging.basicConfig(filename='monitoring.log', encoding='utf-8', level=logging.INFO)
-
 # Initialize GPIO configuration for CPU fan
 FAN_CHANNEL = 8  # Default pin of fany is a physical pin 8 (GPIO14)
 
@@ -32,8 +29,10 @@ fan = CPU_FAN(GPIO, FAN_CHANNEL)
 # Initialize LED strip and working deamon
 strip = led.init(LED_COUNT, LED_PIN)
 stop_event = threading.Event()
-ledThread = threading.Thread(target=led.rainbowCycle, args=(strip, stop_event))
-ledThread.daemon = True
+stop_event.set()
+def createLedThread(led, strip, stop_event) -> threading.Thread:
+    thread = threading.Thread(target=led.rainbowCycle, args=(strip, stop_event), daemon=True)
+    return thread
 
 # Initialize display dashboard
 dashBoard = DashBoard(GPIO)
@@ -42,10 +41,15 @@ try:
     # Parse imput parameters to get greetings name
     parser = argparse.ArgumentParser(description='Monitoring system and controlling cpu fan')
     parser.add_argument('-n', '--name', default='Yuriy', type=str, help='greetings name shown by program start')
+    parser.add_argument('-l', '--log', default='monitoring.log', type=str, help='log output file')
     args = parser.parse_args()
 
-    fan.clear()
+    # Initialize logging
+    logging.basicConfig(filename=args.log, encoding='utf-8', level=logging.INFO)
+
+    fan.reset()
     led.clear(strip)
+    ledThread = None
 
     dashBoard.greetings(args.name)
     time.sleep(30)
@@ -58,10 +62,11 @@ try:
         isFanOn = fan.setCpuFanSpeed(temp)
 
         # Setup led strip
-        if isFanOn and not ledThread.is_alive():
+        if isFanOn and stop_event.is_set():
             stop_event.clear()
+            ledThread = createLedThread(led, strip, stop_event)
             ledThread.start()
-        elif not isFanOn and ledThread.is_alive():
+        elif not isFanOn and not stop_event.is_set():
             stop_event.set()
             led.clear(strip)
 

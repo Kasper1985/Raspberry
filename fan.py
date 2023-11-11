@@ -42,6 +42,9 @@ class CPU_FAN:
         self.__pwm.ChangeDutyCycle(self.__dutyCycle)
         return self.__dutyCycle != self.__DUTY_CYCLE_NONE
 
+    def reset(self) -> None:
+        self.setCpuFanSpeed(0.0)
+
     def clear(self) -> None:
         """Stops the pulse width modulation for cpu fan pin."""
         self.__pwm.stop()
