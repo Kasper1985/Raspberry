@@ -52,7 +52,7 @@ class CpuLoadTile():
         x = self.__center[0] - self.__RADIUS * 0.85 * math.cos(angle)
         y = self.__center[1] - self.__RADIUS * 0.85 * math.sin(angle)
         return (x, y)
-    
+
     def __drawArc(self) -> None:
         arcBox = [self.__center[0] - self.__RADIUS, self.__center[1] - self.__RADIUS, self.__center[0] + self.__RADIUS, self.__center[1] + self.__RADIUS]
         self.__draw.arc(arcBox, 180, 0, self.__INK, self.__WIDTH)
@@ -119,7 +119,7 @@ class IpTile():
     # Constants
     __INK = 0
     __INK_BKG = 128
-    
+
     def __init__(self, location: tuple[float, float], draw: ImageDraw, font: ImageFont, fontSize: float, displayWidth: float):
         self.__location = location
         self.__draw = draw
@@ -197,14 +197,11 @@ class DashBoard():
         self.__disp = SSD.SSD1306_128_64(rst=self.__RST, gpio=gpio)                        # 128x64 display with hardware I2C
         self.__image = Image.new('1', (self.__disp.width, self.__disp.height))  # Create blank image for drawing. Make sure to create image with mode '1' for 1-bit color.
         self.__draw = ImageDraw.Draw(self.__image)                              # Get drawing object to draw on image.
-        self.__font = ImageFont.truetype('SoletoTK.ttf', self.__FONT_SIZE)      # Define a new true type font for drawing text
+        self.__font = ImageFont.truetype('/home/pi/.fonts/SoletoTK.ttf', self.__FONT_SIZE)      # Define a new true type font for drawing text
 
         self.__disp.begin()     # Initialize display library
         self.__disp.clear()     # Clear display
         self.__disp.display()   # Invalidate display
-
-        self.__initializeTiles()
-        self.__updateDisplay()
 
     def updateDashboard(self, cpuLoad: float, cpuTemp: float, ip: str, ram: float, sd: float, usb: float) -> None:
         self.__ipTile.updateValue(ip)
@@ -217,15 +214,30 @@ class DashBoard():
         self.__updateDisplay()
 
     def clear(self) -> None:
-        self.__draw.rectangle([0, 0, self.__disp.width, self.__disp.height])
+        self.__draw.rectangle([0, 0, self.__disp.width, self.__disp.height], 0)
+        self.__updateDisplay()
 
-    def __initializeTiles(self) -> None:
+    def greetings(self, name: str) -> None:
+        font_size = 14
+        font = ImageFont.truetype('/home/pi/.fonts/SoletoTK.ttf', font_size)
+
+        location_hello = [(self.__disp.width - self.__draw.textlength('HELLO', font)) / 2, self.__disp.height / 2 - font_size - 2]
+        self.__draw.text(location_hello, 'HELLO', 255, font)
+
+        location_name = [(self.__disp.width - self.__draw.textlength(name, font)) / 2, self.__disp.height / 2 + 2]
+        self.__draw.text(location_name, name, 255, font)
+
+        self.__updateDisplay()
+
+    def initializeTiles(self) -> None:
         self.__ipTile = IpTile([25, 0], self.__draw, self.__font, self.__FONT_SIZE, self.__disp.width)
         self.__cpuLoadTile = CpuLoadTile([15, 19], self.__draw, self.__font)
         self.__cpuTempTile = CpuTemperatureTile([15, 30], self.__draw, self.__font)
         self.__barRamTile = BarTile([37, 11], self.__draw, self.__font, self.__FONT_SIZE, self.__disp.width, 'RAM', common.getTotalRam(), 'Gi')
         self.__barSdTile = BarTile([37, 28], self.__draw, self.__font, self.__FONT_SIZE, self.__disp.width, 'SD', common.getTotalSd(), 'Gi')
         self.__barUsbTile = BarTile([37, 45], self.__draw, self.__font, self.__FONT_SIZE, self.__disp.width, 'USB', common.getTotalUsb(), 'Gi')
+
+        self.__updateDisplay()
 
     def __updateDisplay(self) -> None:
         self.__disp.image(self.__image) # Draw image into display

@@ -4,12 +4,17 @@
 
 import time
 import threading
+import argparse
+import logging
 import RPi.GPIO as GPIO
 
 import common
 import led
 from fan import CPU_FAN
 from display import DashBoard
+
+# Initialize logging
+logging.basicConfig(filename='monitoring.log', encoding='utf-8', level=logging.INFO)
 
 # Initialize GPIO configuration for CPU fan
 FAN_CHANNEL = 8  # Default pin of fany is a physical pin 8 (GPIO14)
@@ -34,6 +39,19 @@ ledThread.daemon = True
 dashBoard = DashBoard(GPIO)
 
 try:
+    # Parse imput parameters to get greetings name
+    parser = argparse.ArgumentParser(description='Monitoring system and controlling cpu fan')
+    parser.add_argument('-n', '--name', default='Yuriy', type=str, help='greetings name shown by program start')
+    args = parser.parse_args()
+
+    fan.clear()
+    led.clear(strip)
+
+    dashBoard.greetings(args.name)
+    time.sleep(30)
+    dashBoard.clear()
+    dashBoard.initializeTiles()
+
     while True:
         # Setup cpu fan
         temp = common.getCpuTemperature()
@@ -59,6 +77,11 @@ try:
         time.sleep(1)
 
 except KeyboardInterrupt:
+    logging.info('Interrupt by user keyboard input')
+    pass
+
+except Exception as ex:
+    logging.error(ex)
     pass
 
 stop_event.set()    # stop led thread
